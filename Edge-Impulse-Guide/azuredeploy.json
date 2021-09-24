@@ -4,7 +4,7 @@
   "parameters": {
     "UniqueID": {
       "defaultValue": "[take(uniqueString(resourceGroup().id),5)]",
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "Unique ID.  E.g. your name.  Must be Alphanumeric (a~z, 0~9), and 5~12 characters"
       },
@@ -13,7 +13,7 @@
     },
     "AzureDigitalTwins": {
       "defaultValue": false,
-      "type": "bool",
+      "type": "Bool",
       "metadata": {
         "description": "True to include Azure Digital Twins"
       }
@@ -294,11 +294,12 @@
         "type": "None"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-IoT')]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
         "[resourceId('Microsoft.EventHub/namespaces/authorizationRules', variables('eventHubs').nameSpace, 'GlobalSendOnlyRule')]",
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleSend)]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleSend)]",
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageName'), 'default', 'file-upload')]",
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageName'), 'default', 'saved-telemetry')]"
       ],
       "properties": {
         "ipFilterRules": [],
@@ -320,9 +321,14 @@
             ],
             "storageContainers": [
               {
-                "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-                "name": "saved-telemetry",
-                "encoding": "json"
+                "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2021-04-01').keys[0].value)]",
+                "containerName": "saved-telemetry",
+                "fileNameFormat": "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}.json",
+                "batchFrequencyInSeconds": 100,
+                "maxChunkSizeInBytes": 104857600,
+                "encoding": "json",
+                "authenticationType": "keyBased",
+                "name": "saved-telemetry"
               }
             ]
           },
@@ -373,14 +379,14 @@
               "isEnabled": true
             },
             {
-              "name": "TelemetryRoute",
+              "name": "saved-telemetry",
               "source": "DeviceMessages",
               "condition": "true",
               "endpointNames": [
-                  "TelemetryEndpointJson"
+                "saved-telemetry"
               ],
               "isEnabled": true
-          }
+            }
           ],
           "fallbackRoute": {
             "name": "$fallback",
@@ -394,9 +400,9 @@
         },
         "storageEndpoints": {
           "$default": {
-              "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-              "containerName": "file-upload",
-              "authenticationType": "keyBased"
+            "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2021-04-01').keys[0].value)]",
+            "containerName": "file-upload",
+            "authenticationType": "keyBased"
           }
         },
         "messagingEndpoints": {
@@ -441,7 +447,7 @@
         "iotHubs": [
           {
             "applyAllocationPolicy": true,
-            "connectionString": "[concat('HostName=', reference(resourceId('Microsoft.Devices/IoTHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).hostName, ';SharedAccessKeyName=iothubowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).value[0].primaryKey)]",
+            "connectionString": "[concat('HostName=', reference(resourceId('Microsoft.Devices/IoTHubs', variables('iothub').name)).hostName, ';SharedAccessKeyName=iothubowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/IotHubs/Iothubkeys', variables('iothub').name, 'iothubowner'), '2020-08-01').primaryKey)]",
             "location": "[resourceGroup().location]"
           }
         ],
@@ -500,7 +506,7 @@
     {
       "name": "[variables('storageName')]",
       "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2019-06-01",
+      "apiVersion": "2021-04-01",
       "location": "[variables('location')]",
       "tags": {
         "ENV": "[variables('envTag')]"
@@ -508,7 +514,58 @@
       "sku": {
         "name": "Standard_LRS"
       },
-      "kind": "StorageV2"
+      "kind": "StorageV2",
+      "resources" : [
+        
+      ]
+    },
+    {
+      "name": "[concat(variables('storageName'), '/default')]",
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2021-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "properties": {
+        "cors": {
+          "corsRules": []
+        },
+        "deleteRetentionPolicy": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('storageName'), '/default/file-upload')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('storageName'), '/default/saved-telemetry')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
     },
     {
       "name": "[variables('webApp').hostingPlan]",
@@ -626,12 +683,12 @@
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~3",
         "AzureWebJobsSecretStorageType": "Files",
-        "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-        "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
+        "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2021-04-01').keys[0].value)]",
+        "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2021-04-01').keys[0].value)]",
         "EVENTHUB_CS": "[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').name,variables('eventHubs').ruleListen),'2017-04-01').primaryConnectionString]",
-        "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
+        "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(resourceId('Microsoft.SignalRService/signalR', toLower(variables('signalrName'))), '2020-05-01').primaryKey, ';Version=1.0;')]", 
         "ADT_HOST_URL": "[if(parameters('AzureDigitalTwins'), concat('https://', reference(resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)).hostName), '')]",
-        "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]",
+        "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), '2021-02-01').primaryKey]",
         "ModelRepository": "[concat(variables('PrivateModelRepo').url, variables('PrivateModelRepo').branch)]"
       }
     },
@@ -754,7 +811,7 @@
       "properties": {
         "storageConfiguration": {
           "accountName": "[variables('storageName')]",
-          "managementKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value]"
+          "managementKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2021-04-01').keys[0].value]"
         },
         "timeSeriesIdProperties": [
           {
