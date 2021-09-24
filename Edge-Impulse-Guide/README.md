@@ -2,9 +2,17 @@
 
 # Introduction
 
-Project 15 enable efforts to quickly get started with a foundation for a IoT solution. Devices can be provisioned and managed trough the P15 portal and it displays live events and telemetry as text as well as with Time Series Insights and on map.  
+The [Project 15 Open Platform](https://microsoft.github.io/project15/) provides a quick setup of a Internet of Things (IoT) solution technologies using Microsoft cloud technologies. Devices can be provisioned and managed trough the P15 web portal, which also displays live events and telemetry as well as with Time Series Insights and on map. It is possible to extend or adjust the Open Platform to the specific needs of a project, which is showcased here.
 
-Added to the Open Platform is the integration of TinyML models to the managed devices, both the process of model training with Edge Impulse and manage the deployment with P15.
+### **Project 15 Open Platform + Edge Impulse** 
+
+<img src="media/logo_edgeimpulse_may_2021.png" width="100">
+
+Added to the Open Platform is the integration of [Edge Impulse](https://edgeimpulse.com/). With the tools provided by Edge Impulse, it is easy to create TinyML models that can run on, for example, microcontrollers, which are common to use within solutions like species tracking & observation, ecosystem monitoring, pollution detection, etc, where sensor technology is used to acquire data.
+
+> Next level for the Project 15 Open Platform is to besides collecting data also bring back intelligence to the edge 💡
+
+ <!-- models to the managed devices, both the process of model training with Edge Impulse and manage the deployment with P15. -->
 
 ## Outline
 
@@ -33,20 +41,18 @@ Scenarios covered:
 
 ## Train and production scenarios
 
-Two types of firmware:
-1. Firmware outputting raw data to collect training data
-    - firmware as [edgeimpulse/example-dataforwarder-zephyr](https://github.com/edgeimpulse/example-dataforwarder-zephyr)
-    - while this data is streaming, tooling like the [data-forwarder by Edge Impulse](https://docs.edgeimpulse.com/docs/cli-data-forwarder) can sample the data to gather sequences of data, e.g. 2 seconds of accelerometer data and label it. 
+In the process of developing and deploying a TinyML model, a common approach is to make use of two types of firmwares:
+1. Firmware outputting raw data to collect training data. While this data is streaming, tooling like the [data-forwarder by Edge Impulse](https://docs.edgeimpulse.com/docs/cli-data-forwarder) can sample the data to gather sequences of data, e.g. 2 seconds of accelerometer data and label it.
+    - firmware example: [edgeimpulse/example-dataforwarder-zephyr](https://github.com/edgeimpulse/example-dataforwarder-zephyr) 
+
+    &nbsp;  
+    
 2. Firmware running inference: optimized firmware to analyze the raw data *on device* to send only events to the cloud.
-    - firmware as [edgeimpulse/firmware-nrf52840-5340-dk](https://github.com/edgeimpulse/firmware-nrf52840-5340-dk)
+    - firmware example: [edgeimpulse/firmware-nrf52840-5340-dk](https://github.com/edgeimpulse/firmware-nrf52840-5340-dk)
 
 ![ei-inference-output](media/ei-inference-output.png)
 
 These two scenarios are often relevant to the same project, the data collection firmware in the development stage, and the optimized inference firmware in production mode.
-
-### Device connectivity (move)
-
-[Device communication protocols](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-protocols)
 
 &nbsp;
 
@@ -261,3 +267,9 @@ Alternatives:
 Please see the [official documentation](https://www.thethingsindustries.com/docs/integrations/cloud-integrations/azure-iot-hub/) about the Azure IoT Hub integration at The Things Network, as well as the blob post *[First look: The Things Network new Azure IoT Hub integration](https://sandervandevelde.wordpress.com/2021/09/22/first-look-the-things-network-new-azure-iot-hub-integration/)* by Sander van de Velde.
 
 ![sketch](media/thethings.png)
+
+# Other/draft
+
+### Device connectivity (move)
+
+[Device communication protocols](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-protocols)
