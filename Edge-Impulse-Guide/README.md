@@ -12,6 +12,8 @@ Added to the Open Platform is the integration of [Edge Impulse](https://edgeimpu
 
 > Next level for the Project 15 Open Platform is to besides collecting data also bring back intelligence to the edge 💡
 
+![overview blocks](media/overview-blocks-2.png)
+
  <!-- models to the managed devices, both the process of model training with Edge Impulse and manage the deployment with P15. -->
 
 ## Outline
@@ -109,6 +111,8 @@ Project 15 is quickly set up in Microsoft Azure by the provided ARM template. Aj
 
 Click **Deploy to Azure** button below. (TIP: right click the button below and select *Open link in new tab/window*) 
 
+Then, please see remaining steps in [official deploy guide of Project 15 Open Platform](../Deploy/Deployment.md), especially note the step to runt the post deployment script.
+
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FSaraOlsson%2Fproject15%2Fmaster%2FEdge-Impulse-Guide%2Fazuredeploy.json" target="_blank"><img src="deploy-to-azure.svg"/></a>
 
 &nbsp;
@@ -150,7 +154,11 @@ Which is a sample toold on using the Azure device SDK directly
 
 1. Copy the device connection string from the P15 Portal (or directly from IoT Hub)
 
-```edge-impulse-az-data-forwarder```
+```edge-impulse-az-data-forwarder --az-device <your-connectionstring> --az-endpoint <your-function-url>```
+
+<!-- edge-impulse-az-data-forwarder --az-device HostName=P15-IoTHub-hip5m.azure-devices.net;DeviceId=az-forwarder-demo;SharedAccessKey=gBtXeA3EsUFbq4mh4M0CP9oyT0ReI3t+5FDWn7ZboQw= --az-endpoint https://p15-functions-hip5m.azurewebsites.net/api/eidata?code=OcWdJRZGsQ4/rm80xfyLm1cBOruI3fhZ46sw/9B8OY/4HyiNGGqg7Q== -->
+
+<!-- edge-impulse-az-data-forwarder --az-device HostName=P15-IoTHub-hip5m.azure-devices.net;DeviceId=az-forwarder-demo;SharedAccessKey=gBtXeA3EsUFbq4mh4M0CP9oyT0ReI3t+5FDWn7ZboQw= --az-endpoint http://localhost:7071/api/eidata --az-pnp-model dtmi:nordicsemi:eidataforward;2 -->
 
 2. In the condig dialog, enter the device connection string.
 
@@ -203,20 +211,24 @@ In the example CLI tool, the device client registers to listen to a **Command** 
 
 ## Use Plug and Play (PnP) models
 
+An IoT Plug and Play (PnP) model describes what telemetry is expected and what actions can be made from cloud to device. 
+
+The models are found at the [SaraOlsson/iot-plugandplay-models](https://github.com/SaraOlsson/iot-plugandplay-models/blob/main/dtmi/nordicsemi/OpenCollarElephant.json) repository:
+
 - eidataforward-1.json
 - eirunnerforward-1.json
 
-Use to be compatible with Azure IoT Central and to get an understanding of the device firmware/hardware.
-In the P15 portal, it is beneficial to automatically get Time Series Insights in the P15 portal, or to send custom commands like the example shown below:
+An example of how the Elephant Edge collar device is translated into a PnP model is shown by the model
+- dtmi:com:smartparks:elephantcollar;1 
+(change name)
+
+In the P15 portal, the metrics in the Time Series Insights are automatically identified fpr PnP-enabled devices, and custom commands can be sent like the example shown below:
 
 ![send command PnP](media/send-command.png)
 
 
-## Plug and Play model
-
-A PnP model describes what telemetry is expected and what actions can be made from cloud to device. An example of how the Elephant Edge collar device is easily managed with a PnP model is described.
-
-OpenCollarElephant model which is found at the [iot-plugandplay-models](https://github.com/SaraOlsson/iot-plugandplay-models/blob/main/dtmi/nordicsemi/OpenCollarElephant.json) repository
+> tip: if you do not have a device, you may simulate the device and telemetry by using the [C# Plug and Play sample](https://github.com/Azure-Samples/azure-iot-samples-csharp/tree/master/iot-hub/Samples/device/PnpDeviceSamples)
+ 
 
 &nbsp;
 
