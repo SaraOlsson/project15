@@ -2,13 +2,13 @@
 
 # Introduction
 
-The [Project 15 Open Platform](https://microsoft.github.io/project15/) provides a quick setup of a Internet of Things (IoT) solution technologies using Microsoft cloud technologies. Devices can be provisioned and managed trough the P15 web portal, which also displays live events and telemetry as well as with Time Series Insights and on map. It is possible to extend or adjust the Open Platform to the specific needs of a project, which is showcased here.
+The [Project 15 Open Platform](https://microsoft.github.io/project15/) provides a quick setup of a Internet of Things (IoT) solution technologies using Microsoft cloud technologies. Devices can be provisioned and managed trough the P15 web portal, which also displays live events and telemetry as well as with Time Series Insights and on map. It is possible to extend or adjust the Open Platform to the specific needs of a project, which is showcased here, an integration with [Edge Impulse](https://edgeimpulse.com/) tools and with the use case of [OpenCollar by SmartParks](https://opencollar.io/) in mind. 
 
 ### **Project 15 Open Platform + Edge Impulse** 
 
 <img src="media/logo_edgeimpulse_may_2021.png" width="100">
 
-Added to the Open Platform is the integration of [Edge Impulse](https://edgeimpulse.com/). With the tools provided by Edge Impulse, it is easy to create TinyML models that can run on, for example, microcontrollers, which are common to use within solutions like species tracking & observation, ecosystem monitoring, pollution detection, etc, where sensor technology is used to acquire data.
+Added to the Open Platform is the integration of [Edge Impulse](https://edgeimpulse.com/). With their tools, it is easy to create TinyML models that can run on, for example, microcontrollers, which are common to use within solutions like species tracking & observation, ecosystem monitoring, pollution detection, etc, where sensor technology is used to acquire data.
 
 > Next level for the Project 15 Open Platform is to besides collecting data also bring back intelligence to the edge 💡
 
@@ -19,7 +19,7 @@ Added to the Open Platform is the integration of [Edge Impulse](https://edgeimpu
 ## Outline
 
 - Train and production scenarios
-- Use case - Smart Parks
+- Use case - SmartParks
 - What is added to Open Platform in this version
 - Guide "Edge Impulse with P15":
     - Azure deploy of Open Platform
@@ -33,18 +33,18 @@ Added to the Open Platform is the integration of [Edge Impulse](https://edgeimpu
     - With serial connector
     - with BLE connect app
 
-Scenarios covered:
+Scenarios covered:  
 ![sketch](media/ei-p15-2.png)
 
-![sketch](media/sketch.png)
-(draft image)
+<!-- TODO: update
+![sketch](media/sketch.png) -->
 
-&nbsp;
+
 
 ## Train and production scenarios
 
 In the process of developing and deploying a TinyML model, a common approach is to make use of two types of firmwares:
-1. Firmware outputting raw data to collect training data. While this data is streaming, tooling like the [data-forwarder by Edge Impulse](https://docs.edgeimpulse.com/docs/cli-data-forwarder) can sample the data to gather sequences of data, e.g. 2 seconds of accelerometer data and label it.
+1. Firmware outputting raw data to collect training data. While this data is streaming, tooling like the [data-forwarder by Edge Impulse](https://docs.edgeimpulse.com/docs/cli-data-forwarder) can sample the data to gather sequences of data, e.g. two seconds of accelerometer data and label it.
     - firmware example: [edgeimpulse/example-dataforwarder-zephyr](https://github.com/edgeimpulse/example-dataforwarder-zephyr) 
 
     &nbsp;  
@@ -52,22 +52,28 @@ In the process of developing and deploying a TinyML model, a common approach is 
 2. Firmware running inference: optimized firmware to analyze the raw data *on device* to send only events to the cloud.
     - firmware example: [edgeimpulse/firmware-nrf52840-5340-dk](https://github.com/edgeimpulse/firmware-nrf52840-5340-dk)
 
-![ei-inference-output](media/ei-inference-output.png)
+These two scenarios are often relevant to the same project, the data collection firmware in the development stage, and the optimized inference firmware in production mode. In the section about the custom version of Edge Impulse CLI, both scenarios will be discussed again.
 
-These two scenarios are often relevant to the same project, the data collection firmware in the development stage, and the optimized inference firmware in production mode.
+![ei-inference-output](media/ei-inference-output.png)
 
 &nbsp;
 
 ## Use case - SmartParks
 
-(draft) Edge Impulse works together with Smart Parks, Irnas and others to analyze motion and sound data of Elephants to classify and generate events. This adds another layer to the very efficient GPS tracking and LoRaWAN connectivity of the OpenCollar.
+Edge Impulse collaborate with SmartParks, Irnas and others to analyze motion and sound data of Elephants to identify events. This adds a layer of intelligence to the existing GPS tracking and LoRaWAN connectivity of the OpenCollar.
 
-The collar hardware is based on the device *Nordic Semi nRF52840 DK* which is also compatible with Edge Impulse see [the documentation](https://docs.edgeimpulse.com/docs/nordic-semi-nrf52840-dk).
+The collar hardware is based on the device *Nordic Semi nRF52840 DK* which is also compatible with Edge Impulse see [the documentation](https://docs.edgeimpulse.com/docs/nordic-semi-nrf52840-dk). The Edge Impulse firmware for this development board is open source and hosted on GitHub: [edgeimpulse/firmware-nrf52840-5340](https://github.com/edgeimpulse/firmware-nrf52840-5340).
 
-The Edge Impulse firmware for this development board is open source and hosted on GitHub: [edgeimpulse/firmware-nrf52840-5340](https://github.com/edgeimpulse/firmware-nrf52840-5340).
-
+<!-- TODO: another image? -->
 ![sketch](media/OpenCollarElephantEdge.jpg)
-(temporary image?)
+
+For this real use case, we identified a feedback loop that would add benefit for the OpenCollar by SmartParks to that data can be loaded back to Edge Impulse for training. Then it has to:  
+    1. Be uploaded as telemetry or thorugh IoT Hub File upload from device with sensors -> enable telemetry messaging from SmartPark devices to Azure IoT Hub, in this case, integrate Azure IoT Hub to the Lora application that SmartPark uses.  
+    2. Be stored until until loaded to Edge Impulse -> route telemetry from Azure IoT Hub to Azure Storage Account.  
+    3. Be transformed to valid file format -> use Azure Function to fetch from Azure Storage, transform and send to Edge Impulse data ingestion.  
+    4. Train model in Edge Impulse studio -> also link which Edge Impulse project belongs to a certion IoT device.
+
+&nbsp;
 
 ![diagram-usecase](media/use-case-vs-general.png)
 (old image, replace but keep idea about use case VS in general)
@@ -76,27 +82,28 @@ The Edge Impulse firmware for this development board is open source and hosted o
 
 ## Added to P15 in the Edge Impulse integration
 
-(IN PROGRESS)
+<!-- TODO: more to add -->
 - Module in Web Portal for Edge Impulse connection and actions (UI + backend)
     - Sample project in Edge Impulse made public
 - File upload to P15 IoT Hub (via Azure Function)
-- (Functionallity to save telemetry to Storage Account and forward it to Edge Impulse)
+- Functionallity to save telemetry to Storage Account
+    - Forward it to Edge Impulse (in progress)
 
+<!-- TODO: update -->
 To demonstrate how it can be adjusted to the case of adding Edge Impulse models and in particlar the use case of SmartParks and their Elephant Collar, the following changes will direct to the demo code:
 - url and branch in `PrivateModelRepo`
-    - integration version is at [SaraOlsson/iot-plugandplay-models](https://github.com/SaraOlsson/iot-plugandplay-models)
+    - integration version is at [SaraOlsson/iot-plugandplay-models](https://github.com/SaraOlsson/iot-plugandplay-models/tree/main/dtmi/edgeimpulse)
 - url for *webApp* and *functions* in `git-repo`
     - webapp integration version is at [SaraOlsson/project15-openplatform-webapp](https://github.com/SaraOlsson/project15-openplatform-webapp/tree/v0.83.EI)
-    - webapp function version is at [SaraOlsson/project15-openplatform-functions](https://github.com/SaraOlsson/project15-openplatform-functions) (TODO: update branch)
+    - webapp function version is at [SaraOlsson/project15-openplatform-functions](https://github.com/SaraOlsson/project15-openplatform-functions/tree/v0.83.EI) 
 
-**File upload/Telemetry (training data upload)**
-- Enable File Upload in IoT Hub by connecting a Storage Account to it. 
+<!-- **File upload/Telemetry (training data upload)**
 - Use added function in `project15-openplatform-functions` HTTP endpoint
 
     - Ingest from Azure Blob Storage
     - Ingest from http POST request
 
-This endpoint makes a POST request to `http://ingestion.edgeimpulse.com/api/training/data`
+This endpoint makes a POST request to `http://ingestion.edgeimpulse.com/api/training/data` -->
 
 &nbsp;
 
@@ -119,13 +126,14 @@ Then, please see remaining steps in [official deploy guide of Project 15 Open Pl
 
 ## Connect Edge Impulse Project to P15
 
-> Note that documentation about how to provision devices can be found at the project15 repo: [Connect IoT devices to the Open Platform](https://github.com/microsoft/project15/blob/master/Deploy/ConnectingDevice.md)
+> Note that documentation about how to provision devices can be found at the Project 15 repository: [Connect IoT devices to the Open Platform](https://github.com/microsoft/project15/blob/master/Deploy/ConnectingDevice.md)
 
-Training of TinyML model takes place in the Edge Impulse studio. Added to P15-EI is a widget in the web portal to connect a Edge Impulse project by entering the project id. 
+Training of TinyML model takes place in the Edge Impulse studio. Added to P15-EI is a widget in the web portal to connect a Edge Impulse project by entering the project API key. 
 
-Choosing a model project will enable to 
+<!-- TODO: add progress status of below  -->
+<!-- Choosing a model project will enable to 
 - view model type and classes
-- build and prepare firmware for update of IoT device
+- build and prepare firmware for update of IoT device -->
 
 ![sketch](media/connect-project.png)
 
@@ -173,7 +181,10 @@ The telemetry will be streamed also to the IoT Hub of P15 and get a PnP model at
 
 ### Stream inference Telemetry
 
-> Note: if your devive as options to communicate directly with the cloud, you may implement Azure IoT Hub messaging directly in the firmware
+
+The diagram below shows alternative setups of how your application might run. During development, you might just connect the device with serial connection through a USB port to try out the TinyML model. In production, either the device itself has cellular capabilities or you extend it with shields for connectivity. 
+
+> Note: In this guide, mainly the CLI option is covered. If your devive has options to communicate directly with the cloud, you may implement Azure IoT Hub messaging directly in the firmware.
 
 ![update-diagram](media/diagram-run.png)
 
@@ -191,7 +202,8 @@ edge-impulse-run-impulse-az-forwarder --classes no_noise_unknown_yes --az-device
 
 ## Save telemetry
 
-(TODO: write about saving telemetry)
+<!-- TODO: write about saving telemetry -->
+Telemetry is saved to a Storage Account which belogs to the Project 15 resource group. The default settings is that all telemetry is forwarded there, however it can be filtered with conditions on the device metadata or telemetry content. The last connection, from Blob Storage to Edge Impulse Studio will differ depending on the data type. E.g. if the data is accelerometer data, Edge Impulse will need an array with XYZ values sampled with a specified rate. If your telemetry is separated one message per XYZ, logic to gather several messages to one sequence will be needed. If you have image data, the task is easier, etc. 
 
 ![update-diagram](media/diagram-telemetry.png)
 
@@ -222,7 +234,7 @@ An example of how the Elephant Edge collar device is translated into a PnP model
 - dtmi:com:smartparks:elephantcollar;1 
 (change name)
 
-In the P15 portal, the metrics in the Time Series Insights are automatically identified fpr PnP-enabled devices, and custom commands can be sent like the example shown below:
+In the P15 portal, the metrics in the Time Series Insights are automatically identified for PnP-enabled devices, and custom commands can be sent like the example shown below:
 
 ![send command PnP](media/send-command.png)
 
@@ -234,7 +246,8 @@ In the P15 portal, the metrics in the Time Series Insights are automatically ide
 
 ## Get Edge Impulse model 
 
-(Download model from the Portal or backend)
+<!-- TODO: status off Download in portal -->
+<!-- (Download model from the Portal or backend) -->
 
 Below are public made sample projects in the Edge Impulse Studio:
 
@@ -258,30 +271,34 @@ In the [Edge Impulse API](https://docs.edgeimpulse.com/reference#edge-impulse-ap
 
 ## Update ML model/Firmware with BLE connect app
 
+**Flashing firmware**
+
+First, download built firmware from Edge Impulse or as library to build your custom firmware. Then either:  
+    - **A**. connect with over serial port flash the microcontroller using tools like *[west](https://docs.zephyrproject.org/latest/guides/west/build-flash-debug.html)* or by dragging binary to the disk of the microcontroller.  
+    - **B**. if device has connectivity like Bluetooth it might be an option with OTA updates, which is the case in the OpenCollar devices.
+
 ![update-diagram](media/diagram-update.png)
 
-**Flashing firmware**
-- download built firmware from Edge Impulse or as library to build your custom firmware.
-- use microcontroller with Bluetooth or connect with over serial port.
 
 &nbsp;
 
 # SmartParks integration details
 
-(todo) Describe how messages where routed through Lora application to Azure IoT Hub in the Open Platform, how the telemetry can be translated into a PnP model. How the firmware is compatible with same device as Edge Impulse. How the SmartParks BLE connect app is used for DPU over the air.
+<!-- (todo) Describe how messages where routed through Lora application to Azure IoT Hub in the Open Platform, how the telemetry can be translated into a PnP model. How the firmware is compatible with same device as Edge Impulse. How the SmartParks BLE connect app is used for DPU over the air. -->
 
 ## Usage with Lora messages
 
-Alternatives:
-- Azure IoT Hub integration at The Things Network
-- Use IoT Bridge by Azure (forward Lora messages with HTTP via Azure Function to IoT Hub) 
-
 Please see the [official documentation](https://www.thethingsindustries.com/docs/integrations/cloud-integrations/azure-iot-hub/) about the Azure IoT Hub integration at The Things Network, as well as the blob post *[First look: The Things Network new Azure IoT Hub integration](https://sandervandevelde.wordpress.com/2021/09/22/first-look-the-things-network-new-azure-iot-hub-integration/)* by Sander van de Velde.
+
+Alternatives:
+- [Azure IoT Hub integration](https://www.thethingsindustries.com/docs/integrations/cloud-integrations/azure-iot-hub/) at The Things Network.  
+- Use [IoT Bridge by Azure](https://github.com/Azure/iotc-device-bridge). This setup forwards Lora messages with HTTP via Azure Function to IoT Hub and might be a good option for LoRaWan solutions that run somewhere else than The Things Network.
+
 
 ![sketch](media/thethings.png)
 
-# Other/draft
+<!-- # Other/draft
 
 ### Device connectivity (move)
 
-[Device communication protocols](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-protocols)
+[Device communication protocols](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-protocols) -->
