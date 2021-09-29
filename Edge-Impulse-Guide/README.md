@@ -294,8 +294,14 @@ Alternatives:
 - [Azure IoT Hub integration](https://www.thethingsindustries.com/docs/integrations/cloud-integrations/azure-iot-hub/) at The Things Network.  
 - Use [IoT Bridge by Azure](https://github.com/Azure/iotc-device-bridge). This setup forwards Lora messages with HTTP via Azure Function to IoT Hub and might be a good option for LoRaWan solutions that run somewhere else than The Things Network.
 
-
 ![sketch](media/thethings.png)
+
+## Usage with Plug and Play models
+
+Telemetry from SmartPark devices reach the IoT Hub of Project 15 and with a PnP model, they will be accessible in the Time Series Insights chart. Also, as shown in the image below, the latest telemetry is saved in the reported section of the device twin, (which is part of the Azure IoT Hub integration at The Things Network).
+
+![](media/lora-telemetry-smartparks.png)
+
 
 <!-- # Other/draft
 
