@@ -17,165 +17,66 @@
       "metadata": {
         "description": "True to include Azure Digital Twins"
       }
-    },
-    "DevelopmentEnvironment": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "True to set up development environment with free SKUs.  Note: quotas and limintations apply."
-      }
     }
   },
   "variables": {
-    "envTag": "v0.9",
-    "prefix" : "[if(bool(parameters('DevelopmentEnvironment')), 'P15Dev', 'P15')]",
-    "gitRepo": {
+    "git-repo": {
       "webApp": "https://github.com/microsoft/project15-openplatform-webapp.git",
-      "webAppBranch": "v0.9",
+      "webAppBranch": "v0.83",
       "functions": "https://github.com/microsoft/project15-openplatform-functions.git",
-      "functionsBranch": "v0.9"
+      "functionsBranch": "v0.83"
     },
     "location": "[resourceGroup().location]",
-    "deployment": {
-      "apiVersion": "2021-04-01"
-    },
     "script": {
       "tsi": "https://raw.githubusercontent.com/microsoft/project15/master/Deploy/ConfigureTSI.sh"
     },
-    "iotHub": {
-      "name": "[concat(variables('prefix'), '-IoTHub-', parameters('UniqueID'))]",
-      "apiVersion": "2021-03-31",
+    "iothub": {
+      "name": "[concat('P15-IoTHub-', parameters('UniqueID'))]",
       "eventHubsCG": "[concat('P15-IoTHub-', parameters('UniqueID'), '/events/eventHubsCG')]",
-      "systemTopic": "IoTHubSystemTopic",
-      "sku": "[if(parameters('DevelopmentEnvironment'), 'F1', 'S1')]"
-    },
-    "iotHubSku": {
-      "F1": {
-        "skuName": "F1",
-        "partitionCount": 2
-      },
-      "S1": {
-        "skuName": "S1",
-        "partitionCount": 4
-      }
-    },
-    "dps": {
-      "name": "[concat(variables('prefix'), '-DPS-', parameters('UniqueID'))]",
-      "apiVersion": "2020-03-01",
-      "sku": "S1"
-    },
-    "dpsSku": {
-      "S1": {
-        "skuName": "S1"
-      }
-    },
-    "signalR": {
-      "name": "[concat(variables('prefix'), '-SignalR-', parameters('UniqueID'))]",
-      "apiVersion": "2020-05-01",
-      "sku": "[if(parameters('DevelopmentEnvironment'), 'Free_F1', 'Standard_S1')]"
-    },
-    "signalRSku": {
-      "Free_F1": {
-        "skuName": "Free_F1",
-        "tier": "Free"
-      },
-      "Standard_S1": {
-        "skuName": "Standard_S1",
-        "tier": "Standard"
-      }
+      "systemTopic": "IoTHubSystemTopic"
     },
     "eventHubs": {
-      "nameSpace": "[concat(variables('prefix'), '-EventHubs-', parameters('UniqueID'))]",
-      "apiVersion": "2021-01-01-preview",
+      "nameSpace": "[concat('P15-EventHubs-', parameters('UniqueID'))]",
       "name": "devicetelemetryhub",
+      "cgFunctions": "telemetry-functions-cg",
+      "cgTsi": "telemetry-tsi-cg",
       "ruleListen": "TelemetryListenRule",
-      "ruleSend": "TelemetrySendRule",
-      "sku": "[if(parameters('DevelopmentEnvironment'), 'Basic', 'Standard')]",
-      "cgFunction": "telemetry-functions-cg",
-      "cgTsi": "telemetry-tsi-cg"
+      "ruleSend": "TelemetrySendRule"
     },
-    "eventHubsSku": {
-      "Basic": {
-        "skuName": "Basic",
-        "tier": "Basic",
-        "cgTsi": "$Default",
-        "cgFunction": "$Default"
-      },
-      "Standard": {
-        "skuName": "Standard",
-        "tier": "Standard",
-        "cgTsi": "[variables('eventHubs').cgTsi]",
-        "cgFunction": "[variables('eventHubs').cgFunction]"
-      }
+    "webApp": {
+      "hostingPlan": "[concat('P15-HostingPlan-', parameters('UniqueID'))]",
+      "functionsName": "[concat('P15-Functions-', parameters('UniqueID'))]",
+      "webappName": "[concat('P15-Portal-', parameters('UniqueID'))]",
+      "webappUrl": "[toLower(concat('https://', 'P15-Portal-', parameters('UniqueID'), '.azurewebsites.net'))]"
     },
-    "appSvc": {
-      "apiVersion": "2020-12-01",
-      "hostingPlan": "[concat(variables('prefix'), '-HostingPlan-', parameters('UniqueID'))]",
-      "functionsName": "[concat(variables('prefix'), '-Functions-', parameters('UniqueID'))]",
-      "webappName": "[concat(variables('prefix'), '-Portal-', parameters('UniqueID'))]",
-      "webappUrl": "[toLower(concat('https://', variables('prefix'), '-Portal-', parameters('UniqueID'), '.azurewebsites.net'))]",
-      "sku": "[if(parameters('DevelopmentEnvironment'), 'D1', 'S1')]"
-    },
-    "appSvcSku": {
-      "D1": {
-        "skuName": "D1"
-      },
-      "S1": {
-        "skuName": "S1"
-      }
-    },
-    "storage": {
-      "name": "[toLower(concat(variables('prefix'),'stor', parameters('UniqueID')))]",
-      "apiVersion": "2021-04-01",
-      "sku": "Standard_LRS"
-    },
-    "storageSku": {
-      "Standard_LRS": {
-        "skuName": "Standard_LRS",
-        "kind": "StorageV2"
-      }
-    },
+    "storageName": "[toLower(concat('p15stor', parameters('UniqueID')))]",
+    "signalrName": "[concat('P15-SignalR-', parameters('UniqueID'))]",
+    "dpsName": "[concat('P15-DPS-', parameters('UniqueID'))]",
     "tsi": {
-      "environment": "[concat(variables('prefix'), '-TSI-', parameters('UniqueID'))]",
-      "apiVersion": "2020-05-15",
+      "environment": "[concat('P15-TSI-', parameters('UniqueID'))]",
       "location": "westus2",
-      "eventSource": "TSI-EventHubs",
-      "sku": "L1"
+      "eventSource": "TSI-EventHubs"
     },
-    "tsiSku": {
-      "L1": {
-        "skuName": "L1"
-      }
-    },
-    "map": {
-      "name": "[concat(variables('prefix'), '-MAP-', parameters('UniqueID'))]",
-      "apiVersion": "2021-02-01"
-    },
+    "mapName": "[concat('P15-MAP-', parameters('UniqueID'))]",
     "PrivateModelRepo": {
       "url": "https://raw.githubusercontent.com/daisukeiot/iot-plugandplay-models/",
       "branch": "privatemodels"
     },
-    "eventGrid": {
-      "apiVersion": "2020-04-01-preview"
-    },
     "adt": {
-      "name": "[concat(variables('prefix'), '-ADT-', parameters('UniqueID'))]",
-      "apiVersion": "2020-12-01",
+      "name": "[concat('P15-ADT-', parameters('UniqueID'))]",
       "location": "westus2",
       "identity": "functionsidentity",
       "roleId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'bcd981a7-7f74-457b-83e1-cceb9e632ffe')]"
     },
-    "authorization": {
-      "apiVersion": "2020-04-01-preview",
-      "adtRoleName": "[guid(variables('adt').identity, variables('adt').roleId)]"
-    }
+    "adtRoleName": "[guid(variables('adt').identity, variables('adt').roleId)]",
+    "envTag": "v0.83-07132021"
   },
   "resources": [
     {
       "name": "Deploy-IoT",
       "type": "Microsoft.Resources/deployments",
       "resourceGroup": "[resourceGroup().name]",
-      "apiVersion": "[variables('deployment').apiVersion]",
+      "apiVersion": "2020-10-01",
       "dependsOn": [],
       "properties": {
         "mode": "Incremental",
@@ -191,43 +92,43 @@
             {
               "name": "[variables('eventHubs').nameSpace]",
               "type": "Microsoft.EventHub/namespaces",
-              "apiVersion": "[variables('eventhubs').apiVersion]",
+              "apiVersion": "2018-01-01-preview",
               "location": "[variables('location')]",
               "tags": {
                 "ENV": "[variables('envTag')]"
               },
               "sku": {
-                "name": "[variables('eventHubsSku')[variables('eventHubs').sku].skuName]",
-                "tier": "[variables('eventHubsSku')[variables('eventHubs').sku].tier]",
+                "name": "Basic",
+                "tier": "Basic",
                 "capacity": 1
               },
               "properties": {},
               "resources": []
             },
             {
-              "name": "[variables('iotHub').name]",
+              "name": "[variables('iothub').name]",
               "type": "Microsoft.Devices/IotHubs",
-              "apiVersion": "[variables('iothub').apiVersion]",
+              "apiVersion": "2020-08-01",
               "location": "[variables('location')]",
               "tags": {
                 "ENV": "[variables('envTag')]"
               },
               "sku": {
-                "name": "[variables('iotHubSku')[variables('iotHub').sku].skuName]",
+                "name": "F1",
                 "capacity": 1
               }
             },
             {
-              "name": "[variables('dps').name]",
+              "name": "[variables('dpsName')]",
               "type": "Microsoft.Devices/provisioningServices",
-              "apiVersion": "[variables('dps').apiVersion]",
+              "apiVersion": "2020-03-01",
               "location": "[variables('location')]",
               "tags": {
                 "ENV": "[variables('envTag')]"
               },
               "dependsOn": [],
               "sku": {
-                "name": "[variables('dpsSku')[variables('dps').sku].skuName]",
+                "name": "S1",
                 "capacity": 1
               },
               "properties": {}
@@ -237,16 +138,16 @@
       }
     },
     {
-      "name": "[variables('signalR').name]",
+      "name": "[variables('signalrName')]",
       "type": "Microsoft.SignalRService/SignalR",
-      "apiVersion": "[variables('signalr').apiVersion]",
+      "apiVersion": "2020-05-01",
       "location": "[variables('location')]",
       "tags": {
         "ENV": "[variables('envTag')]"
       },
       "sku": {
-        "name": "[variables('signalRSku')[variables('signalR').sku].skuName]",
-        "tier": "[variables('signalRSku')[variables('signalR').sku].tier]",
+        "name": "Free_F1",
+        "tier": "Free",
         "capacity": 1
       },
       "kind": "SignalR",
@@ -260,7 +161,7 @@
         ],
         "cors": {
           "allowedOrigins": [
-            "[variables('appSvc').webappUrl]",
+            "[variables('webApp').webappUrl]",
             "https://localhost:44352"
           ]
         }
@@ -269,7 +170,7 @@
     {
       "name": "[variables('eventHubs').nameSpace]",
       "type": "Microsoft.EventHub/namespaces",
-      "apiVersion": "[variables('eventhubs').apiVersion]",
+      "apiVersion": "2018-01-01-preview",
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-IoT')]"
       ],
@@ -277,12 +178,17 @@
       "tags": {
         "ENV": "[variables('envTag')]"
       },
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic",
+        "capacity": 1
+      },
       "properties": {},
       "resources": [
         {
           "name": "[concat(variables('eventHubs').nameSpace, '/RootManageSharedAccessKey')]",
           "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
-          "apiVersion": "[variables('eventhubs').apiVersion]",
+          "apiVersion": "2017-04-01",
           "dependsOn": [
             "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]"
           ],
@@ -297,7 +203,7 @@
         {
           "name": "[concat(variables('eventHubs').nameSpace, '/GlobalSendOnlyRule')]",
           "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
-          "apiVersion": "[variables('eventhubs').apiVersion]",
+          "apiVersion": "2017-04-01",
           "dependsOn": [
             "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]"
           ],
@@ -310,7 +216,7 @@
         {
           "name": "[variables('eventHubs').name]",
           "type": "eventhubs",
-          "apiVersion": "[variables('eventhubs').apiVersion]",
+          "apiVersion": "2017-04-01",
           "location": "[variables('location')]",
           "dependsOn": [
             "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]"
@@ -323,7 +229,7 @@
             {
               "name": "[variables('eventHubs').ruleListen]",
               "type": "authorizationRules",
-              "apiVersion": "[variables('eventhubs').apiVersion]",
+              "apiVersion": "2017-04-01",
               "dependsOn": [
                 "[variables('eventHubs').name]"
               ],
@@ -336,10 +242,9 @@
             {
               "name": "[variables('eventHubs').ruleSend]",
               "type": "authorizationRules",
-              "apiVersion": "[variables('eventhubs').apiVersion]",
+              "apiVersion": "2017-04-01",
               "dependsOn": [
-                "[variables('eventHubs').name]",
-                "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventhubs').nameSpace, variables('eventhubs').name, variables('eventhubs').ruleListen)]"
+                "[variables('eventHubs').name]"
               ],
               "properties": {
                 "rights": [
@@ -348,20 +253,18 @@
               }
             },
             {
-              "condition": "[equals(variables('eventhubs').sku, 'Standard')]",
-              "name": "[variables('eventHubs').cgFunction]",
+              "name": "[variables('eventHubs').cgFunctions]",
               "type": "consumergroups",
-              "apiVersion": "[variables('eventhubs').apiVersion]",
+              "apiVersion": "2017-04-01",
               "dependsOn": [
                 "[variables('eventHubs').name]"
               ],
               "properties": {}
             },
             {
-              "condition": "[equals(variables('eventhubs').sku, 'Standard')]",
               "name": "[variables('eventHubs').cgTsi]",
               "type": "consumergroups",
-              "apiVersion": "[variables('eventhubs').apiVersion]",
+              "apiVersion": "2017-04-01",
               "dependsOn": [
                 "[variables('eventHubs').name]"
               ],
@@ -372,15 +275,15 @@
       ]
     },
     {
-      "name": "[variables('iotHub').name]",
+      "name": "[variables('iothub').name]",
       "type": "Microsoft.Devices/IotHubs",
-      "apiVersion": "[variables('iothub').apiVersion]",
+      "apiVersion": "2020-08-01",
       "location": "[variables('location')]",
       "tags": {
         "ENV": "[variables('envTag')]"
       },
       "sku": {
-        "name": "[variables('iotHubSku')[variables('iotHub').sku].skuName]",
+        "name": "F1",
         "capacity": 1
       },
       "identity": {
@@ -389,6 +292,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-IoT')]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
+        "[resourceId('Microsoft.EventHub/namespaces/authorizationRules', variables('eventHubs').nameSpace, 'GlobalSendOnlyRule')]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleSend)]"
       ],
       "properties": {
@@ -396,7 +300,7 @@
         "eventHubEndpoints": {
           "events": {
             "retentionTimeInDays": 1,
-            "partitionCount": "[variables('iotHubSku')[variables('iotHub').sku].partitionCount]"
+            "partitionCount": 4
           }
         },
         "routing": {
@@ -405,7 +309,7 @@
             "serviceBusTopics": [],
             "eventHubs": [
               {
-                "connectionString": "[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').name, variables('eventHubs').ruleSend),variables('eventHubs').apiVersion).primaryConnectionString]",
+                "connectionString": "[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').name, variables('eventHubs').ruleSend),'2017-04-01').primaryConnectionString]",
                 "name": "DeviceTelemetryToEventHub-EP"
               }
             ],
@@ -440,20 +344,20 @@
               "isEnabled": true
             },
             {
-              "name": "DeviceTelemetryRoute",
-              "source": "DeviceMessages",
-              "condition": "true",
-              "endpointNames": [
-                "DeviceTelemetryToEventHub-EP"
-              ],
-              "isEnabled": true
-            },
-            {
               "name": "DeviceTelemetryRouteToDefault",
               "source": "DeviceMessages",
               "condition": "true",
               "endpointNames": [
                 "events"
+              ],
+              "isEnabled": true
+            },
+            {
+              "name": "DeviceTelemetryRoute",
+              "source": "DeviceMessages",
+              "condition": "true",
+              "endpointNames": [
+                "DeviceTelemetryToEventHub-EP"
               ],
               "isEnabled": true
             }
@@ -490,22 +394,26 @@
       "resources": []
     },
     {
-      "name": "[variables('dps').name]",
+      "name": "[variables('dpsName')]",
       "type": "Microsoft.Devices/provisioningServices",
-      "apiVersion": "[variables('dps').apiVersion]",
+      "apiVersion": "2020-03-01",
       "location": "[variables('location')]",
       "tags": {
         "ENV": "[variables('envTag')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-IoT')]",
-        "[resourceId('Microsoft.Devices/IotHubs', variables('iotHub').name)]"
+        "[resourceId('Microsoft.Devices/IotHubs', variables('iothub').name)]"
       ],
+      "sku": {
+        "name": "S1",
+        "capacity": 1
+      },
       "properties": {
         "iotHubs": [
           {
             "applyAllocationPolicy": true,
-            "connectionString": "[concat('HostName=', reference(resourceId('Microsoft.Devices/IoTHubs', variables('iothub').name)).hostName, ';SharedAccessKeyName=iothubowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/IotHubs/Iothubkeys', variables('iothub').name, 'iothubowner'), variables('iothub').apiVersion).primaryKey)]",
+            "connectionString": "[concat('HostName=', reference(resourceId('Microsoft.Devices/IoTHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).hostName, ';SharedAccessKeyName=iothubowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).value[0].primaryKey)]",
             "location": "[resourceGroup().location]"
           }
         ],
@@ -513,7 +421,7 @@
       }
     },
     {
-      "name": "[variables('iotHub').systemTopic]",
+      "name": "[variables('iothub').systemTopic]",
       "type": "Microsoft.EventGrid/systemTopics",
       "apiVersion": "2020-04-01-preview",
       "location": "[variables('location')]",
@@ -524,24 +432,24 @@
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-IoT')]"
       ],
       "properties": {
-        "source": "[resourceId('Microsoft.Devices/IotHubs', variables('iotHub').name)]",
+        "source": "[resourceId('Microsoft.Devices/IotHubs', variables('iothub').name)]",
         "topicType": "Microsoft.Devices.IoTHubs"
       }
     },
     {
-      "name": "[concat(variables('iotHub').systemTopic, '/DeviceManagementEventSubscription')]",
+      "name": "[concat(variables('iothub').systemTopic, '/DeviceManagementEventSubscription')]",
       "type": "Microsoft.EventGrid/systemTopics/eventSubscriptions",
-      "apiVersion": "[variables('eventGrid').apiVersion]",
+      "apiVersion": "2020-04-01-preview",
       "dependsOn": [
-        "[resourceId('Microsoft.EventGrid/systemTopics', variables('iotHub').systemTopic)]",
-        "[resourceId('Microsoft.Web/sites/config', variables('appSvc').webappName, 'appsettings')]"
+        "[resourceId('Microsoft.EventGrid/systemTopics', variables('iothub').systemTopic)]",
+        "[resourceId('Microsoft.Web/sites/config', variables('webApp').webappName, 'appsettings')]"
       ],
       "properties": {
         "destination": {
           "properties": {
             "maxEventsPerBatch": 1,
             "preferredBatchSizeInKilobytes": 64,
-            "endpointUrl": "[concat(variables('appSvc').webappUrl,'/api/eventgrid')]"
+            "endpointUrl": "[concat(variables('webApp').webappUrl,'/api/eventgrid')]"
           },
           "endpointType": "WebHook"
         },
@@ -562,32 +470,32 @@
       }
     },
     {
-      "name": "[variables('storage').name]",
+      "name": "[variables('storageName')]",
       "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "[variables('storage').apiVersion]",
+      "apiVersion": "2019-06-01",
       "location": "[variables('location')]",
       "tags": {
         "ENV": "[variables('envTag')]"
       },
       "sku": {
-        "name": "[variables('storageSku')[variables('storage').sku].skuName]"
+        "name": "Standard_LRS"
       },
-      "kind": "[variables('storageSku')[variables('storage').sku].kind]"
+      "kind": "StorageV2"
     },
     {
-      "name": "[variables('appSvc').hostingPlan]",
+      "name": "[variables('webApp').hostingPlan]",
       "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "[variables('appSvc').apiVersion]",
+      "apiVersion": "2020-09-01",
       "location": "[variables('location')]",
       "tags": {
         "ENV": "[variables('envTag')]"
       },
       "sku": {
-        "name": "[variables('appSvcSku')[variables('appSvc').sku].skuName]"
+        "name": "F1"
       },
       "kind": "app",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage').name)]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
       ],
       "properties": {
         "workerSize": 0,
@@ -598,10 +506,10 @@
       "name": "Deploy-Functions",
       "type": "Microsoft.Resources/deployments",
       "resourceGroup": "[resourceGroup().name]",
-      "apiVersion": "[variables('deployment').apiVersion]",
+      "apiVersion": "2020-10-01",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage').name)]",
-        "[resourceId('Microsoft.Web/serverfarms', variables('appSvc').hostingPlan)]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('webApp').hostingPlan)]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -616,9 +524,9 @@
           "variables": {},
           "resources": [
             {
-              "name": "[variables('appSvc').functionsName]",
+              "name": "[variables('webApp').functionsName]",
               "type": "Microsoft.Web/sites",
-              "apiVersion": "[variables('appSvc').apiVersion]",
+              "apiVersion": "2020-09-01",
               "kind": "functionapp",
               "location": "[variables('location')]",
               "tags": {
@@ -629,8 +537,8 @@
                 "type": "SystemAssigned"
               },
               "properties": {
-                "name": "[variables('appSvc').functionsName]",
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appSvc').hostingPlan)]",
+                "name": "[variables('webApp').functionsName]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('webApp').hostingPlan)]",
                 "clientAffinityEnabled": false,
                 "enabled": true,
                 "siteConfig": {
@@ -656,13 +564,13 @@
                 {
                   "name": "web",
                   "type": "sourcecontrols",
-                  "apiVersion": "[variables('appSvc').apiVersion]",
+                  "apiVersion": "2020-09-01",
                   "dependsOn": [
-                    "[resourceId('Microsoft.Web/Sites', variables('appSvc').functionsName)]"
+                    "[resourceId('Microsoft.Web/Sites', variables('webApp').functionsName)]"
                   ],
                   "properties": {
-                    "repoUrl": "[variables('gitRepo').functions]",
-                    "branch": "[variables('gitRepo').functionsBranch]",
+                    "repoUrl": "[variables('git-repo').functions]",
+                    "branch": "[variables('git-repo').functionsBranch]",
                     "IsManualIntegration": true
                   }
                 }
@@ -673,41 +581,40 @@
       }
     },
     {
-      "name": "[concat(variables('appSvc').functionsName, '/appsettings')]",
+      "name": "[concat(variables('webApp').functionsName, '/appsettings')]",
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "[variables('appSvc').apiVersion]",
+      "apiVersion": "2020-09-01",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage').name)]",
-        "[resourceId('Microsoft.Web/serverfarms', variables('appSvc').hostingPlan)]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('webApp').hostingPlan)]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
         "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleListen)]",
-        "[resourceId('Microsoft.SignalRService/SignalR', variables('signalR').name)]",
+        "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
         "[resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)]",
-        "[resourceId('Microsoft.Maps/accounts', variables('map').name)]",
+        "[resourceId('Microsoft.Maps/accounts', variables('mapName'))]",
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-IoT')]",
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-Functions')]"
       ],
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~3",
         "AzureWebJobsSecretStorageType": "Files",
-        "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storage').name,';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage').name), variables('storage').apiVersion).keys[0].value)]",
-        "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storage').name,';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage').name), variables('storage').apiVersion).keys[0].value)]",
-        "EVENTHUB_CS": "[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleListen),variables('eventhubs').apiVersion).primaryConnectionString]",
-        "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalr').name), '.service.signalr.net;AccessKey=', listKeys(resourceId('Microsoft.SignalRService/signalR', toLower(variables('signalr').name)), variables('signalr').apiVersion).primaryKey, ';Version=1.0;')]",
+        "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
+        "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
+        "EVENTHUB_CS": "[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').name,variables('eventHubs').ruleListen),'2017-04-01').primaryConnectionString]",
+        "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
         "ADT_HOST_URL": "[if(parameters('AzureDigitalTwins'), concat('https://', reference(resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)).hostName), '')]",
-        "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('map').name), variables('map').apiVersion).primaryKey]",
-        "ModelRepository": "[concat(variables('PrivateModelRepo').url, variables('PrivateModelRepo').branch)]",
-        "TELEMETRY_CG": "[variables('eventHubsSku')[variables('eventHubs').sku].cgFunction]"
+        "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]",
+        "ModelRepository": "[concat(variables('PrivateModelRepo').url, variables('PrivateModelRepo').branch)]"
       }
     },
     {
       "name": "Deploy-Webapp",
       "type": "Microsoft.Resources/deployments",
       "resourceGroup": "[resourceGroup().name]",
-      "apiVersion": "[variables('deployment').apiVersion]",
+      "apiVersion": "2020-10-01",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage').name)]",
-        "[resourceId('Microsoft.Web/serverfarms', variables('appSvc').hostingPlan)]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('webApp').hostingPlan)]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -721,16 +628,16 @@
           "variables": {},
           "resources": [
             {
-              "name": "[variables('appSvc').webappName]",
+              "name": "[variables('webApp').webappName]",
               "type": "Microsoft.Web/sites",
-              "apiVersion": "[variables('appSvc').apiVersion]",
+              "apiVersion": "2020-09-01",
               "location": "[variables('location')]",
               "dependsOn": [],
               "tags": {
                 "ENV": "[variables('envTag')]"
               },
               "properties": {
-                "serverFarmId": "[variables('appSvc').hostingPlan]",
+                "serverFarmId": "[variables('webApp').hostingPlan]",
                 "siteConfig": {
                   "webSocketsEnabled": true
                 }
@@ -739,13 +646,13 @@
                 {
                   "name": "web",
                   "type": "sourcecontrols",
-                  "apiVersion": "[variables('appSvc').apiVersion]",
+                  "apiVersion": "2020-09-01",
                   "dependsOn": [
-                    "[resourceId('Microsoft.Web/Sites', variables('appSvc').webappName)]"
+                    "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]"
                   ],
                   "properties": {
-                    "repoUrl": "[variables('gitRepo').webapp]",
-                    "branch": "[variables('gitRepo').webappBranch]",
+                    "repoUrl": "[variables('git-repo').webapp]",
+                    "branch": "[variables('git-repo').webappBranch]",
                     "IsManualIntegration": true
                   }
                 }
@@ -756,9 +663,9 @@
       }
     },
     {
-      "name": "[variables('appSvc').functionsName]",
+      "name": "[variables('webApp').functionsName]",
       "type": "Microsoft.Web/sites",
-      "apiVersion": "[variables('appSvc').apiVersion]",
+      "apiVersion": "2020-09-01",
       "kind": "functionapp",
       "location": "[variables('location')]",
       "tags": {
@@ -773,55 +680,53 @@
       "properties": {}
     },
     {
-      "name": "[concat(variables('appSvc').webappName, '/appsettings')]",
+      "name": "[concat(variables('webApp').webappName, '/appsettings')]",
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "[variables('appSvc').apiVersion]",
+      "apiVersion": "2020-09-01",
       "dependsOn": [
-        "[resourceId('Microsoft.SignalRService/SignalR', variables('signalR').name)]",
-        "[resourceId('Microsoft.Devices/IotHubs', variables('iotHub').name)]",
-        "[resourceId('Microsoft.Maps/accounts', variables('map').name)]",
+        "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
+        "[resourceId('Microsoft.Devices/IotHubs', variables('iothub').name)]",
+        "[resourceId('Microsoft.Maps/accounts', variables('mapName'))]",
         "[resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsi').environment)]",
-        "[resourceId('Microsoft.Devices/provisioningServices', variables('dps').name)]",
+        "[resourceId('Microsoft.Devices/provisioningServices', variables('dpsName'))]",
         "[resourceId('Microsoft.Resources/deployments', 'Deploy-Webapp')]",
-        "[resourceId('Microsoft.Resources/deployments', 'Deploy-Functions')]",
-        "[resourceId('Microsoft.Web/sites/config', variables('appSvc').functionsName, 'appsettings')]"
+        "[resourceId('Microsoft.Web/sites/config', variables('webApp').functionsName, 'appsettings')]"
       ],
       "properties": {
-        "Azure__SignalR__ConnectionString": "[concat('Endpoint=https://', toLower(variables('signalr').name), '.service.signalr.net;AccessKey=', listKeys(resourceId('Microsoft.SignalRService/signalR', toLower(variables('signalr').name)), variables('signalr').apiVersion).primaryKey, ';Version=1.0;')]",
-        "Azure__IoTHub__ConnectionString": "[concat('HostName=', reference(resourceId('Microsoft.Devices/IoTHubs', variables('iothub').name)).hostName, ';SharedAccessKeyName=iothubowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/IotHubs/Iothubkeys', variables('iothub').name, 'iothubowner'), variables('iothub').apiVersion).primaryKey)]",
-        "Azure__AzureMap__MapKey": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('map').name), variables('map').apiVersion).primaryKey]",
+        "Azure__SignalR__ConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
+        "Azure__IoTHub__ConnectionString": "[concat('HostName=', reference(resourceId('Microsoft.Devices/IoTHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).hostName, ';SharedAccessKeyName=iothubowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).value[0].primaryKey)]",
+        "Azure__AzureMap__MapKey": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]",
         "Azure__TimeSeriesInsights__tsiUri": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsi').environment)).dataAccessFQDN]",
         "Azure__TimeSeriesInsights__clientId": "",
         "Azure__TimeSeriesInsights__tenantId": "",
         "Azure__TimeSeriesInsights__tsiSecret": "",
-        "Azure__Dps__IdScope": "[reference(resourceId('Microsoft.Devices/ProvisioningServices',variables('dps').name)).idScope]",
-        "Azure__Dps__ConnectionString": "[concat('HostName=', variables('dps').name, '.azure-devices-provisioning.net;SharedAccessKeyName=provisioningserviceowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/provisioningServices/keys',variables('dps').name, 'provisioningserviceowner'), variables('dps').apiVersion).primaryKey)]",
-        "Azure__Dps__WebHookUrl": "[listsecrets(resourceId('Microsoft.Web/sites/functions', variables('appSvc').functionsName, 'Dps_Processor'), variables('appSvc').apiVersion).trigger_url]",
+        "Azure__Dps__IdScope": "[reference(resourceId('Microsoft.Devices/ProvisioningServices',variables('dpsName'))).idScope]",
+        "Azure__Dps__ConnectionString": "[concat('HostName=', variables('dpsName'), '.azure-devices-provisioning.net;SharedAccessKeyName=provisioningserviceowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/provisioningServices', variables('dpsName')), providers('Microsoft.Devices', 'provisioningServices').apiVersions[0]).value[0].primaryKey)]",
+        "Azure__Dps__WebHookUrl": "[listsecrets(resourceId('Microsoft.Web/sites/functions', variables('webApp').functionsName, 'Dps_Processor'), '2020-09-01').trigger_url]",
         "Azure__ModelRepository__repoUrl": "[concat(variables('PrivateModelRepo').url, variables('PrivateModelRepo').branch)]",
-        "Azure__GitHub__token": "",
-        "TELEMETRY_CG": "[variables('eventHubsSku')[variables('eventHubs').sku].cgFunction]"
+        "Azure__GitHub__token": ""
       }
     },
     {
       "name": "[variables('tsi').environment]",
       "type": "Microsoft.TimeSeriesInsights/environments",
-      "apiVersion": "[variables('tsi').apiVersion]",
+      "apiVersion": "2020-05-15",
       "location": "[variables('tsi').location]",
       "tags": {
         "ENV": "[variables('envTag')]"
       },
       "sku": {
-        "name": "[variables('tsiSku')[variables('tsi').sku].skuName]",
+        "name": "L1",
         "capacity": 1
       },
       "kind": "Gen2",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage').name)]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
       ],
       "properties": {
         "storageConfiguration": {
-          "accountName": "[variables('storage').name]",
-          "managementKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage').name), variables('storage').apiVersion).keys[0].value]"
+          "accountName": "[variables('storageName')]",
+          "managementKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value]"
         },
         "timeSeriesIdProperties": [
           {
@@ -834,7 +739,7 @@
         {
           "name": "[variables('tsi').eventSource]",
           "type": "eventsources",
-          "apiVersion": "[variables('tsi').apiVersion]",
+          "apiVersion": "2020-05-15",
           "location": "[variables('tsi').location]",
           "tags": {
             "ENV": "[variables('envTag')]"
@@ -842,6 +747,7 @@
           "dependsOn": [
             "[resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsi').environment)]",
             "[resourceId('Microsoft.EventHub/Namespaces', variables('eventHubs').nameSpace)]",
+            "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/ConsumerGroups', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').cgTsi)]",
             "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleListen)]"
           ],
           "kind": "Microsoft.EventHub",
@@ -849,21 +755,20 @@
             "eventSourceResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventHubs').nameSpace, variables('eventHubs').name)]",
             "eventHubName": "[variables('eventHubs').name]",
             "serviceBusNamespace": "[variables('eventHubs').nameSpace]",
-            "consumerGroupName": "[variables('eventHubsSku')[variables('eventHubs').sku].cgTsi]",
+            "consumerGroupName": "[variables('eventHubs').cgTsi]",
             "keyName": "[variables('eventHubs').ruleListen]",
-            "sharedAccessKey": "[listkeys(resourceId(resourceGroup().name, 'Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleListen), variables('eventHubs').apiVersion).primaryKey]"
+            "sharedAccessKey": "[listkeys(resourceId(resourceGroup().name, 'Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').name, variables('eventHubs').ruleListen), '2017-04-01').primaryKey]"
           }
         }
       ]
     },
     {
-      "name": "[variables('map').name]",
+      "name": "[variables('mapName')]",
       "type": "Microsoft.Maps/accounts",
-      "apiVersion": "[variables('map').apiVersion]",
+      "apiVersion": "2021-02-01",
       "location": "global",
       "sku": {
-        "name": "G2",
-        "tier": "Standard"
+        "name": "G2"
       },
       "kind": "Gen2",
       "properties": {
@@ -874,7 +779,7 @@
       "condition": "[parameters('AzureDigitalTwins')]",
       "name": "[variables('adt').name]",
       "type": "Microsoft.DigitalTwins/digitalTwinsInstances",
-      "apiVersion": "[variables('adt').apiVersion]",
+      "apiVersion": "2020-12-01",
       "location": "[variables('adt').location]",
       "tags": {
         "ENV": "[variables('envTag')]"
@@ -883,15 +788,15 @@
     },
     {
       "condition": "[parameters('AzureDigitalTwins')]",
-      "name": "[variables('authorization').adtRoleName]",
+      "name": "[variables('adtRoleName')]",
       "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "[variables('authorization').apiVersion]",
+      "apiVersion": "2020-04-01-preview",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites/config', variables('appSvc').functionsName, 'appsettings')]"
+        "[resourceId('Microsoft.Web/sites/config', variables('webApp').functionsName, 'appsettings')]"
       ],
       "properties": {
         "roleDefinitionId": "[variables('adt').roleId]",
-        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('appSvc').functionsName), variables('appSvc').apiVersion, 'Full').identity.principalId]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('webApp').functionsName), '2020-09-01', 'Full').identity.principalId]",
         "scope": "[resourceGroup().id]",
         "principalType": "ServicePrincipal"
       }
@@ -908,7 +813,7 @@
     },
     "_Web_Site_Address": {
       "type": "String",
-      "value": "[concat('https://',  variables('appSvc').webappName,'.azurewebsites.net/')]"
+      "value": "[concat('https://',  variables('webApp').webappName,'.azurewebsites.net/')]"
     },
     "_Azure_Digital_Twins_Host": {
       "type": "String",
