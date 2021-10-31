@@ -98,9 +98,7 @@
                 "ENV": "[variables('envTag')]"
               },
               "sku": {
-                "name": "Standard",
-                "tier": "Standard",
-                "capacity": 1
+                "name": "F1"
               },
               "properties": {},
               "resources": []
